@@ -29,6 +29,7 @@ public static class Explosion
         }
 
         Camera.main.DOShakeRotation((1 / GameManager.instance.speed) / 2, .1f, 10);
+        SoundManager.instance.Play("explode");
     }
 
     private static int getRandomIndex()

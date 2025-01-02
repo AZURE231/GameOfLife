@@ -18,6 +18,7 @@ public static class Laser
             laserCol(pis);
         }
         Camera.main.DOShakePosition((1 / GameManager.instance.speed) / 2, .05f, 5);
+        SoundManager.instance.Play("laser");
     }
 
     private static void laserRow(Pi[] pis)

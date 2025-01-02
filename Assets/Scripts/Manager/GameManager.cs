@@ -20,4 +20,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        SoundManager.instance.Play("bgm");
+    }
+
 }
