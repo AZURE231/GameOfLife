@@ -12,6 +12,11 @@ public class GameManager : MonoBehaviour
 
     public int cycle = 0;
 
+
+    public bool isBombing = false;
+    public bool isLasering = false;
+    public bool isPandemic = false;
+
     private void Awake()
     {
         if (instance == null)

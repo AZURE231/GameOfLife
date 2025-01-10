@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
-using UnityEngine.UI;
+
 
 public class GridGenerator : MonoBehaviour
 {
@@ -15,6 +14,8 @@ public class GridGenerator : MonoBehaviour
 
     const int ROW = 50;
     const int COL = 50;
+
+    public event EventHandler OnLose;
 
     void Start()
     {
@@ -36,7 +37,7 @@ public class GridGenerator : MonoBehaviour
     {
         for (int i = 0; i < ROW * COL; i++)
         {
-            if (Random.Range(0, 5) == 1)
+            if (UnityEngine.Random.Range(0, 5) == 1)
             {
                 pis[i].setStateLive();
             }
@@ -72,13 +73,32 @@ public class GridGenerator : MonoBehaviour
         drawTimer -= Time.deltaTime;
         if (drawTimer <= 0)
         {
+            checkLose();
             GameManager.instance.cycle++;
-            createExplosion();
-            createLaser();
-            createPandemic();
+            if (GameManager.instance.isBombing) createExplosion();
+            if (GameManager.instance.isLasering) createLaser();
             updateGridPi();
+            if (GameManager.instance.isPandemic) createPandemic();
             drawTimer = drawTimerMax;
         }
+    }
+
+    private void checkLose()
+    {
+        if (isLose())
+        {
+            OnLose?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private bool isLose()
+    {
+        int numLivePi = 0;
+        foreach (Pi pi in pis)
+        {
+            if (pi.getState() == Pi.State.Live) numLivePi++;
+        }
+        return numLivePi == 0;
     }
 
     private void updateGridPi()
@@ -118,7 +138,7 @@ public class GridGenerator : MonoBehaviour
 
     private void createExplosion()
     {
-        if (Random.Range(0, 10) == 0)
+        if (UnityEngine.Random.Range(0, 10) == 0)
         {
             Explosion.makeRandomExplosion(pis);
         }
@@ -126,7 +146,7 @@ public class GridGenerator : MonoBehaviour
 
     private void createLaser()
     {
-        if (Random.Range(0, 3) == 0)
+        if (UnityEngine.Random.Range(0, 3) == 0)
         {
             Laser.makeRandomLaser(pis);
         }
@@ -204,8 +224,15 @@ public class GridGenerator : MonoBehaviour
         {
             if (numNeighbor == 2 || numNeighbor == 3)
             {
-                // Cell keep alive if have 2 or 3 neighbor
-                this.nextStateList[index] = Pi.State.Live;
+                // Cell keep alive or sick if have 2 or 3 neighbor
+                if (this.pis[index].getState() == Pi.State.Sick)
+                {
+                    // If pi sick for 3 cycle, it die
+                    if (this.pis[index].sickCycleCount == 3)
+                        this.nextStateList[index] = Pi.State.Die;
+                    else this.nextStateList[index] = Pi.State.Sick;
+                }
+                else this.nextStateList[index] = Pi.State.Live;
             }
             else
             {
@@ -219,7 +246,7 @@ public class GridGenerator : MonoBehaviour
             }
 
         }
-        else if (this.pis[index].getState() == Pi.State.Die || this.pis[index].getState() == Pi.State.Sick)
+        else if (this.pis[index].getState() == Pi.State.Die)
         {
             if (numNeighbor == 3)
             {
@@ -235,6 +262,8 @@ public class GridGenerator : MonoBehaviour
         else if (this.pis[index].getState() == Pi.State.Hurt)
         {
             this.nextStateList[index] = Pi.State.Hurt;
+            // If hurt for 3 cycle, it dies
+            if (this.pis[index].hurtCycleCount == 3) this.nextStateList[index] = Pi.State.Die;
         }
     }
 

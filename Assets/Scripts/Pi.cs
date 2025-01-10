@@ -17,7 +17,8 @@ public class Pi : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPoi
 
     private State state = State.Die;
     private Image image;
-    private int startHurtCycle = 0;
+    public int hurtCycleCount = 0;
+    public int sickCycleCount = 0;
     private void Awake()
     {
         this.image = GetComponent<Image>();
@@ -30,19 +31,20 @@ public class Pi : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPoi
         {
             default:
             case State.Die:
-
+                sickCycleCount = 0;
+                hurtCycleCount = 0;
                 break;
             case State.Live:
+                sickCycleCount = 0;
+                hurtCycleCount = 0;
                 this.image.color = new Color(1f, 1f, 1f);
                 break;
             case State.Hurt:
+                hurtCycleCount++;
                 this.image.color = new Color(1f, 0f, 0f);
-                if (GameManager.instance.cycle - startHurtCycle >= Explosion.EFFECT_CYCLE_TIME)
-                {
-                    state = State.Die;
-                }
                 break;
             case State.Sick:
+                sickCycleCount++;
                 this.image.color = new Color(0f, 1f, 0f);
                 break;
         }
@@ -51,7 +53,7 @@ public class Pi : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPoi
     public void setStateDie()
     {
         image.DOColor(Color.black, (1 / GameManager.instance.speed) / 2);
-
+        transform.localScale = new Vector3(1f, 1f, 1f);
         this.state = State.Die;
     }
 
@@ -63,8 +65,7 @@ public class Pi : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPoi
 
     public void setStateHurt()
     {
-        Debug.Log("This is hurt");
-        startHurtCycle = GameManager.instance.cycle;
+        hurtCycleCount = 0;
         this.state = State.Hurt;
     }
 
